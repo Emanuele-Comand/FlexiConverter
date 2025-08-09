@@ -1,0 +1,6 @@
+{
+  "text": ["text/plain", "text/csv", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation"],
+  "images": ["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml", "image/x-icon", "image/bmp", "image/tiff"],
+  "audio": ["audio/mpeg", "audio/vnd.wave", "audio/aac", "audio/flac", "audio/ogg", "audio/x-s-wma", "audio/aiff", "audio/midi"]
+}
+
