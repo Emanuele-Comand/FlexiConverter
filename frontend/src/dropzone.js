@@ -139,15 +139,12 @@ const DropzoneComponent = async () => {
     thumbnailHeight: 120,
     autoProcessQueue: false,
     init() {
-      // aggiungi convertTo al formData quando si invia il file
       this.on("sending", (file, xhr, formData) => {
         if (file.convertTo) {
-          formData.append("convertTo", file.convertTo);
+          formData.append("convertTo", file.convertTo.replace(/^\./, ""));
         }
       });
-
-      // mostra progresso upload sul bottone Convert
-      this.on("uploadprogress", (file, progress /* percento */) => {
+      this.on("uploadprogress", (file, progress) => {
         const previewEl = file.previewElement;
         if (!previewEl) return;
         const convertBtn = previewEl.querySelector(".convert-btn");
@@ -156,7 +153,6 @@ const DropzoneComponent = async () => {
         }
       });
 
-      // success handler: server restituisce downloadUrl DOPO conversione
       this.on("success", (file, resp) => {
         console.log("Server response (success):", resp);
 
@@ -170,20 +166,23 @@ const DropzoneComponent = async () => {
         const dl = previewEl.querySelector(".download-btn");
 
         if (convertBtn) {
-          // nascondi convert (ruolo scambiato)
           convertBtn.style.display = "none";
           convertBtn.disabled = false;
         }
 
         if (dl && downloadUrl) {
           dl.href = downloadUrl;
-          dl.setAttribute("download", "");
-          // forza visibilità tramite inline style (più affidabile)
+
+          // Estrai il nome file dall'URL di download
+          const urlParts = downloadUrl.split("/");
+          const filename = urlParts[urlParts.length - 1];
+
+          // Imposta l'attributo download con il nome file corretto
+          dl.setAttribute("download", filename);
           dl.style.display = "inline-flex";
           dl.classList.add("visible");
           dl.innerHTML = `<i class="fa fa-download" aria-hidden="true" style="margin-right:8px"></i>Download`;
         } else if (dl) {
-          // fallback: mostra comunque il link (senza href)
           dl.style.display = "inline-flex";
           dl.textContent = "Download";
         }
@@ -211,8 +210,9 @@ const DropzoneComponent = async () => {
       select.className = "extension";
       const opt = (v) => {
         const o = document.createElement("option");
-        o.value = v;
-        o.textContent = v;
+        const val = v.replace(/^\./, "");
+        o.value = val;
+        o.textContent = v.startsWith(".") ? v : "." + v;
         return o;
       };
 
@@ -225,10 +225,12 @@ const DropzoneComponent = async () => {
         "jpeg",
         "gif",
         "webp",
+        "avif",
+        "heif",
+        "tiff",
         "svg",
         "ico",
         "bmp",
-        "tiff",
       ];
       const textExts = [
         "txt",
@@ -256,14 +258,12 @@ const DropzoneComponent = async () => {
         [
           ".png",
           ".jpg",
+          ".jpeg",
           ".webp",
-          ".svg",
-          "gif",
-          "webp",
-          "svg",
-          "ico",
-          "bmp",
-          "tiff",
+          ".avif",
+          ".heif",
+          ".tiff",
+          ".gif",
         ].forEach((v) => select.appendChild(opt(v)));
         return select;
       } else if (mime && acceptedTypes?.text?.includes(mime)) {
@@ -285,9 +285,16 @@ const DropzoneComponent = async () => {
       }
 
       if (imageExts.includes(ext)) {
-        [".png", ".jpg", ".webp", ".svg"].forEach((v) =>
-          select.appendChild(opt(v))
-        );
+        [
+          ".png",
+          ".jpg",
+          ".jpeg",
+          ".webp",
+          ".avif",
+          ".heif",
+          ".tiff",
+          ".gif",
+        ].forEach((v) => select.appendChild(opt(v)));
         return select;
       } else if (textExts.includes(ext)) {
         [".txt", ".csv", ".pdf", ".docx"].forEach((v) =>
@@ -301,13 +308,21 @@ const DropzoneComponent = async () => {
         return select;
       }
 
-      [".png", ".jpg", ".webp"].forEach((v) => select.appendChild(opt(v)));
+      [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".webp",
+        ".avif",
+        ".heif",
+        ".tiff",
+        ".gif",
+      ].forEach((v) => select.appendChild(opt(v)));
       return select;
     }
 
     const previewEl = file.previewElement;
     if (previewEl) {
-      // render select
       const optionsContainer = previewEl.querySelector(".options-container");
       if (optionsContainer) {
         const existingLabel = optionsContainer.querySelector(".convert-label");
@@ -319,6 +334,24 @@ const DropzoneComponent = async () => {
 
         const sel = renderSelection(file);
         optionsContainer.appendChild(sel);
+
+        // Aggiungi event listener per il cambio di formato
+        sel.addEventListener("change", () => {
+          // Nascondi il bottone download
+          const dl = previewEl.querySelector(".download-btn");
+          if (dl) {
+            dl.style.display = "none";
+            dl.classList.remove("visible");
+          }
+
+          // Mostra di nuovo il bottone convert
+          const convertBtn = previewEl.querySelector(".convert-btn");
+          if (convertBtn) {
+            convertBtn.style.display = "inline-flex";
+            convertBtn.disabled = false;
+            convertBtn.textContent = "Convert";
+          }
+        });
       }
 
       const iconEl = previewEl.querySelector("[data-icon]");
@@ -354,6 +387,18 @@ const DropzoneComponent = async () => {
           myDropzone.processFile(file);
 
           log(file);
+        });
+      }
+
+      // Aggiungi funzionalità di delete
+      const deleteBtn = previewEl.querySelector(".delete-file");
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Rimuovi il file da Dropzone
+          myDropzone.removeFile(file);
         });
       }
     }

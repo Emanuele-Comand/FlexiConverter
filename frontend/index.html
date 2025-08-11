@@ -1,13 +1,17 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/FlexiConverter.png" />
     <link rel="stylesheet" type="" href="/src/style.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nata+Sans:wght@100..900&display=swap" rel="stylesheet">
-      <link
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nata+Sans:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
       integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
@@ -18,21 +22,24 @@
   </head>
   <body>
     <div id="app">
-      <div class="container">  
-      <header>
-        <img src="/FlexiConverter.png" alt="FlexiConverter Logo">
-        <p class="nata-sans">
-        Convert your files for free without limits! 
-        </p>
-      </header>
-      <main>
-        <form id="my-form" action="/upload" method="POST" enctype="multipart/form-data">
-          <div class="message-container nata-sans">
-            <i class="fa-solid fa-2x fa-file-circle-plus form-icon"></i>
-          Drag and drop your file here, or click to select a file!  
-          </div>
-        </form>
-      </main>
+      <div class="container">
+        <header>
+          <img src="/FlexiConverter.png" alt="FlexiConverter Logo" />
+          <p class="nata-sans">Convert your files for free without limits!</p>
+        </header>
+        <main>
+          <form
+            id="my-form"
+            action="/upload"
+            method="POST"
+            enctype="multipart/form-data"
+          >
+            <div class="message-container nata-sans">
+              <i class="fa-solid fa-2x fa-file-circle-plus form-icon"></i>
+              Drag and drop your file here, or click to select a file!
+            </div>
+          </form>
+        </main>
       </div>
     </div>
     <script type="module" src="/src/main.js"></script>
