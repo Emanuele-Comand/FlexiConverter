@@ -86,6 +86,75 @@ header p {
   padding: 10px;
 }
 
-#delete-file:hover {
+.delete-file:hover {
   color: red;
+}
+
+.options-container .extension {
+  background-color: black;
+  color: white;
+  border: 1px dashed white;
+  padding: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.actions-container {
+  display: flex;
+  gap: 12px;
+  justify-content: center; 
+  margin-top: 16px;
+  align-items: center;
+}
+
+.download-btn {
+  background: transparent;
+  color: white;
+  border: 1px solid #fff;
+  border-radius: 10px;
+  padding: 10px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.download-btn.visible {
+  display: inline-flex;
+}
+
+.convert-btn {
+  background: transparent;
+  color: white;
+  border: 1px solid #fff;
+  border-radius: 10px;
+  margin-top: 0; 
+  padding: 10px;
+  cursor: pointer;
+}
+.convert-btn:hover {
+  background-color: #fff;
+  color: #000;
+  transition: all 0.25s ease-out;
+}
+
+.download-btn {
+  display: none;
+  background: transparent;
+  color: white;
+  border: 1px solid #fff;
+  border-radius: 10px;
+  padding: 10px;
+  text-decoration: none;
+  align-items: center;
+  cursor: pointer;
+}
+
+.download-btn.visible {
+  display: inline-flex;
+}
+
+.convert-btn[disabled] {
+  opacity: 0.6;
+  cursor: progress;
 }
