@@ -129,7 +129,6 @@ const DropzoneComponent = async () => {
   </div>
   `;
 
-  // autoProcessQueue false: l'upload parte solo con processFile(file)
   let myDropzone = new Dropzone("#my-form", {
     url: "http://localhost:3000/upload",
     clickable: ["#my-form", ".message-container", ".form-icon"],
@@ -173,11 +172,9 @@ const DropzoneComponent = async () => {
         if (dl && downloadUrl) {
           dl.href = downloadUrl;
 
-          // Estrai il nome file dall'URL di download
           const urlParts = downloadUrl.split("/");
           const filename = urlParts[urlParts.length - 1];
 
-          // Imposta l'attributo download con il nome file corretto
           dl.setAttribute("download", filename);
           dl.style.display = "inline-flex";
           dl.classList.add("visible");
@@ -335,16 +332,13 @@ const DropzoneComponent = async () => {
         const sel = renderSelection(file);
         optionsContainer.appendChild(sel);
 
-        // Aggiungi event listener per il cambio di formato
         sel.addEventListener("change", () => {
-          // Nascondi il bottone download
           const dl = previewEl.querySelector(".download-btn");
           if (dl) {
             dl.style.display = "none";
             dl.classList.remove("visible");
           }
 
-          // Mostra di nuovo il bottone convert
           const convertBtn = previewEl.querySelector(".convert-btn");
           if (convertBtn) {
             convertBtn.style.display = "inline-flex";
@@ -397,7 +391,6 @@ const DropzoneComponent = async () => {
           e.preventDefault();
           e.stopPropagation();
 
-          // Rimuovi il file da Dropzone
           myDropzone.removeFile(file);
         });
       }

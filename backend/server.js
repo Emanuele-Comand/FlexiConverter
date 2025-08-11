@@ -24,7 +24,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Route di download deve venire PRIMA dei file statici
 app.get("/download/:filename", (req, res) => {
   const filename = req.params.filename;
   console.log("Download route chiamata per:", filename);
@@ -35,10 +34,8 @@ app.get("/download/:filename", (req, res) => {
 
   const filePath = path.join(CONVERTED_DIR, filename);
 
-  // Verifica che il file esista
   fs.access(filePath)
     .then(() => {
-      // Imposta gli header per forzare il download
       res.setHeader(
         "Content-Disposition",
         `attachment; filename="${filename}"`
@@ -55,9 +52,6 @@ app.get("/download/:filename", (req, res) => {
       res.status(404).json({ error: "File not found" });
     });
 });
-
-// Rimuoviamo la route statica per evitare conflitti con il download
-// app.use("/converted", express.static(CONVERTED_DIR));
 
 const upload = multer({ dest: UPLOAD_DIR });
 
@@ -90,8 +84,18 @@ async function convertImageSharp(
   const requested = (targetFormat || "webp").replace(/^\./, "").toLowerCase();
   const fmt = IMAGE_FORMAT_MAP[requested] || requested;
 
+  console.log("Sharp formats supportati:", Object.keys(sharp.format || {}));
+  console.log("Formato richiesto:", requested, "-> Mappato a:", fmt);
+
   const supported = sharp.format || {};
   const canOutput = !!(supported[fmt] && supported[fmt].output);
+  console.log("Formato supportato per output:", canOutput, "per", fmt);
+
+  if (!canOutput && ["avif", "heif", "gif"].includes(fmt)) {
+    console.log(`Sharp non supporta ${fmt}, userò FFmpeg come fallback`);
+    throw new Error(`Formato ${fmt} non supportato da Sharp, uso FFmpeg`);
+  }
+
   if (!canOutput) {
     throw new Error(`Formato di output non supportato da sharp: ${fmt}`);
   }
@@ -113,27 +117,35 @@ async function convertImageSharp(
 
   switch (fmt) {
     case "jpeg":
+      console.log("Conversione JPEG...");
       await pipeline.jpeg(opts).toFile(outPath);
       break;
     case "png":
+      console.log("Conversione PNG...");
       await pipeline.png(opts).toFile(outPath);
       break;
     case "webp":
+      console.log("Conversione WebP...");
       await pipeline.webp(opts).toFile(outPath);
       break;
     case "tiff":
+      console.log("Conversione TIFF...");
       await pipeline.tiff(opts).toFile(outPath);
       break;
     case "avif":
+      console.log("Conversione AVIF...");
       await pipeline.avif(opts).toFile(outPath);
       break;
     case "heif":
+      console.log("Conversione HEIF...");
       await pipeline.heif(opts).toFile(outPath);
       break;
     case "gif":
+      console.log("Conversione GIF...");
       await pipeline.gif(opts).toFile(outPath);
       break;
     default:
+      console.log("Conversione formato generico:", fmt);
       if (typeof pipeline[fmt] === "function") {
         await pipeline[fmt](opts).toFile(outPath);
       } else {
@@ -153,6 +165,17 @@ function convertAudioFFmpeg(inputPath, outPath, format = "mp3") {
   });
 }
 
+function convertImageFFmpeg(inputPath, outPath, format = "png") {
+  return new Promise((resolve, reject) => {
+    ffmpeg(inputPath)
+      .noAudio()
+      .toFormat(format)
+      .on("end", () => resolve())
+      .on("error", (err) => reject(err))
+      .save(outPath);
+  });
+}
+
 async function convertTextPandoc(inputPath, outPath) {
   await execFileP("pandoc", [inputPath, "-o", outPath]);
 }
@@ -164,6 +187,8 @@ const ALLOWED_TARGETS = new Set([
   "png",
   "tiff",
   "avif",
+  "heif",
+  "gif",
   "mp3",
   "ogg",
   "wav",
@@ -268,6 +293,21 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     return res.json({ downloadUrl: `${origin}/download/${outName}` });
   } catch (err) {
     console.error("Conversion failed:", err);
+
+    if (isImage && ["gif", "avif", "heif"].includes(targetFormat)) {
+      console.log("Sharp fallito, provo con FFmpeg per:", targetFormat);
+      try {
+        await convertImageFFmpeg(inputPath, outPath, targetFormat);
+        try {
+          await fs.unlink(inputPath).catch(() => {});
+        } catch (e) {}
+        const origin = `${req.protocol}://${req.get("host")}`;
+        return res.json({ downloadUrl: `${origin}/download/${outName}` });
+      } catch (ffmpegErr) {
+        console.error("Anche FFmpeg fallito:", ffmpegErr);
+      }
+    }
+
     try {
       await fs.unlink(inputPath).catch(() => {});
     } catch (e) {}
